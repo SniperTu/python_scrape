@@ -1,0 +1,296 @@
+"""import multiprocessing
+
+def process(index):
+    print(f'Process:{index}')
+
+if __name__ == "__main__":
+    for i in range(5):
+        p = multiprocessing.Process(target=process,args=(i,))
+        p.start()"""
+
+"""
+import multiprocessing
+import time
+
+def process(index):
+    time.sleep(index)
+    print(f'Process:{index}')
+
+if __name__ == "__main__":
+    for i in range(5):
+        p = multiprocessing.Process(target=process,args=[i])
+        p.start()
+    print(f'CPU number:{multiprocessing.cpu_count()}')
+    for p in multiprocessing.active_children():
+        print(f'Child process name:{p.name} id:{p.pid}')
+    print('process Ended')
+
+import multiprocessing
+import time
+
+def process(index):
+    time.sleep(index)
+    print(f'process:{index}')
+
+if __name__ == "__main__":
+    for i in range(5):
+        p = multiprocessing.Process(target=process,args=[i])
+        p.start()
+    print(f'CPU number:{multiprocessing.cpu_count()}')
+    for p in multiprocessing.active_children():
+        print(f'Child Process name:{p.name} id:{p.pid}')
+    print('Process Ended')
+
+#继承process类
+from multiprocessing import Process
+import time 
+
+class MyProcess(Process):
+    def __init__(self, loop):
+        Process.__init__(self)
+        self.loop = loop
+
+    def run(self):
+        for count in range(self.loop):
+            time.sleep(2)
+            print(f'Pid:{self.pid} LoopCount:{count}')
+
+if __name__ == "__main__":
+    for i in range(2,5):
+        p = MyProcess(i)
+        p.start()
+
+#守护进程
+from multiprocessing import Process
+import time
+ 
+class MyProcess(Process):
+    def __init__(self, loop):
+        Process.__init__(self)
+        self.loop = loop
+    
+    def run(self):
+        for count in range(self.loop):
+            time.sleep(2)
+            print(f'Pid:{self.pid} Loopcount:{count}')
+if __name__ == "__main__":
+    processes = []
+    for i in range(3,5):
+        p = MyProcess(i)
+        processes.append(p)
+        p.daemon = True
+        p.start()
+    for p in processes:
+        p.join()
+print('Main Process Ended')
+
+#进程等待
+from multiprocessing import Process
+import time
+
+class Myprocess(Process):
+    def __init__(self, loop):
+        Process.__init__(self)
+        self.loop = loop
+
+    def run(self):
+        for count in range(self.loop):
+            time.sleep(1)
+            print(f'Pid:{self.pid} Loopcount:{count}')
+
+if __name__ == "__main__":
+    processes = []
+    for i in range(3,5):
+        p = Myprocess(i)
+        processes.append(p)
+        p.daemon = True
+        p.start()
+    for p in processes:
+        p.join()
+print('Main process ended')
+
+#terminate()终止进程
+import multiprocessing
+import time
+
+def process():
+    print('Starting')
+    time.sleep(5)
+    print('Finished')
+
+if __name__ == "__main__":
+    p = multiprocessing.Process(target=process)
+    print('Before:', p, p.is_alive())
+
+    p.start()
+    print('During:', p, p.is_alive())
+
+    p.terminate()
+    print('Terminate:', p, p.is_alive())
+
+    p.join()
+    print('Joined:', p, p.is_alive())
+"""
+"""
+#进程互斥锁
+from multiprocessing import Process, Lock
+import time
+
+class MyProcess(Process):
+    def __init__(self, loop, lock):
+        Process.__init__(self)
+        self.loop = loop
+        self.lock = lock
+
+    def run(self):
+        for count in range(self.loop):
+            time.sleep(0.1)
+            #self.lock.acquire()
+            print(f'Pid: {self.pid} Loopcount: {count}')
+            #self.lock.release()
+            # 在访问一些临界区资源时，使用 Lock 可以有效避免进程同时占用资源而导致的一些问题
+
+if __name__ == "__main__":
+    lock = Lock()
+    for i in range(10,15):
+        p = MyProcess(i, lock)
+        p.start()
+
+from multiprocessing import Process, Lock
+import time
+
+class MyProcess(Process):
+    def __init__(self, loop, lock):
+        Process.__init__(self)
+        self.loop = loop
+        self.lock = lock
+
+    def run(self):
+        for count in range(self.loop):
+            time.sleep(0.1)
+            self.lock.acquire()
+            print(f'Pid: {self.pid} Loopcount:{count}')
+            self.lock.release()
+
+if __name__ == "__main__":
+    lock = Lock()
+    for i in range(10,15):
+        p = MyProcess(i,lock)
+        p.start()
+""""""
+#信号量（生产者消费者问题）
+from multiprocessing import Process, Queue, Lock, Semaphore
+import time 
+
+buffer = Queue(10)
+empty = Semaphore(2)
+full = Semaphore(0)
+lock = Lock()
+
+class Consumer(Process):
+    def run(self):
+        global buffer, empty, buffer, lock
+        while True:
+            full.acquire()
+            lock.acquire()
+            buffer.get()
+            print('Comuser pop an element')
+            time.sleep(1)
+            lock.release()
+            empty.release()
+
+class Producer(Process):
+    def run(self):
+        global buffer, empty, full, lock
+        while True:
+            empty.acquire()
+            lock.acquire()
+            buffer.put(1)
+            print('Producer append an element')
+            time.sleep(1)
+            lock.release()
+            full.release()
+
+if __name__ == "__main__":
+    p = Producer()
+    c = Consumer()
+    p.daemon = c.daemon = True
+    p.start()
+    c.start()
+    p.join()
+    c.join()
+    print('Main Process Ended')
+#队列
+from multiprocessing import Process, Semaphore, Lock, Queue
+import time
+from random import random
+
+buffer = Queue(10)
+empty = Semaphore(2)
+full = Semaphore(0)
+lock = Lock()
+
+class Consumer(Process):
+    def run(self):
+        global buffer, empty, full, lock
+        while True:
+            full.acquire()
+            lock.acquire()
+            print(f'Cosumer get {buffer.get()}')
+            time.sleep(1)
+            lock.release()
+            empty.release()
+
+class Producer(Process):
+    def run(self):
+        global buffer,empty, full, lock
+        while True:
+            empty.acquire()
+            lock.acquire()
+            num = random()
+            print(f'Producer put {num}')
+            buffer.put(num)
+            time.sleep(1)
+            lock.release()
+            full.release()
+
+if __name__ == "__main__":
+    p = Producer()
+    c = Consumer()
+    p.daemon = c.daemon = True
+    p.start()
+    c.start()
+    p.join()
+    c.join()
+    print('Main Process Ended')"""
+#管道
+from multiprocessing import Process, Pipe
+
+class Consumer(Process):
+    def __init__(self, pipe):
+        Process.__init__(self)
+        self.pipe = pipe
+
+    def run(self):
+        self.pipe.send('Consumer Words')
+        print(f'Consumer Received: {self.pipe.recv()}')
+
+class Producer(Process):
+    def __init__(self,pipe):
+        Process.__init__(self)
+        self.pipe = pipe
+    
+    def run(self):
+        print(f'Producer Receved: {self.pipe.recv()}')
+        self.pipe.send('Producer Words')
+
+if __name__ == "__main__":
+    pipe = Pipe()
+    p = Producer(pipe[0])
+    c = Consumer(pipe[1])
+    p.daemon = c.daemon = True
+    p.start()
+    c.start()
+    p.join()
+    c.join()
+    print('Main Process Ended')
